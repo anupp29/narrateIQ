@@ -179,13 +179,13 @@ function FeedbackSection({ count }: { count: number }) {
             onClick={() => setState("yes")}
             className="border border-pos px-3 py-1.5 text-[12px] font-semibold text-pos hover:bg-pos/5"
           >
-            Yes — correct ✓
+            Yes, correct ✓
           </button>
           <button
             onClick={() => setState("issue")}
             className="border border-neg px-3 py-1.5 text-[12px] font-semibold text-neg hover:bg-neg/5"
           >
-            No — flag an issue
+            No, flag an issue
           </button>
         </div>
       </div>
@@ -249,7 +249,7 @@ export function DecisionBrief({
       <p className="mt-1.5 text-[12px] text-muted-foreground">
         Generated {brief.generatedAt} · Persona: {brief.persona} · {brief.totalLatency} ·{" "}
         {brief.abstain
-          ? "LLM cost: $0.000 — abstention triggered before narrative generation"
+          ? "LLM cost: $0.000, abstention triggered before narrative generation"
           : `Est. cost: ${brief.estimatedCost} · Tokens: ${brief.tokenCount}`}
       </p>
 
@@ -270,7 +270,7 @@ export function DecisionBrief({
           {feedbackInfo && (
             <p className="mt-1.5 text-[11.5px] text-muted-foreground">
               Most recent correction applied: "Billing migration effects should be attributed to the
-              week of invoice issue, not the week of order." — Analytics Lead, 11 days ago.
+              week of invoice issue, not the week of order." Analytics Lead, 11 days ago.
             </p>
           )}
         </div>

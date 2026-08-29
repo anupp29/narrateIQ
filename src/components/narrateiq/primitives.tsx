@@ -64,7 +64,7 @@ export function SectionHeading({ index, title }: { index: string; title: string 
   return (
     <div className="mb-4">
       <h2 className="font-serif text-[19px] font-semibold tracking-tight text-foreground">
-        <span className="text-muted-foreground">{index} — </span>
+        <span className="text-muted-foreground">{index} · </span>
         {title}
       </h2>
       <div className="mt-2 h-px w-full bg-border" />

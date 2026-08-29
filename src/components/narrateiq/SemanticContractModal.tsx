@@ -20,12 +20,12 @@ export function SemanticContractModal({ onClose }: { onClose: () => void }) {
             </h2>
             <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
               Governed definitions, lineage, calculations, access controls and thresholds for all
-              monitored KPIs. This layer is deterministic — no LLM involvement.
+              monitored KPIs. This layer is deterministic, with no LLM involvement.
             </p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
             <span className="bg-muted px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground">
-              NON-LLM — Deterministic definition layer
+              NON-LLM · Deterministic definition layer
             </span>
             <button onClick={onClose} className="text-[12px] text-primary underline underline-offset-2">
               Close
