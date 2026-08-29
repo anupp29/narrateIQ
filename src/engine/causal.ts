@@ -63,7 +63,8 @@ type Extractor = (row: PanelRow) => number;
 
 /** Ordinary least squares with an intercept, treatment first, then the adjustment set. */
 export function estimate(rows: PanelRow[], treatment: Extractor, controls: Extractor[]): EffectEstimate {
-  const X = rows.map((r) => [1, treatment(r), ...controls.map((c) => c(r))]);
+  // ols() adds its own intercept column, so the design starts with the treatment.
+  const X = rows.map((r) => [treatment(r), ...controls.map((c) => c(r))]);
   const y = rows.map((r) => r.y);
   const fit = ols(X, y);
   const b = fit.coefficients[1] ?? 0;
