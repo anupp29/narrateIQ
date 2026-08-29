@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { BriefLoading } from "@/components/narrateiq/BriefLoading";
 import { Dashboard } from "@/components/narrateiq/Dashboard";
+import { Home } from "@/components/narrateiq/Home";
 import { DecisionBrief } from "@/components/narrateiq/DecisionBrief";
 import { Login } from "@/components/narrateiq/Login";
 import { ScenarioBar } from "@/components/narrateiq/ScenarioBar";
@@ -36,10 +37,10 @@ export const Route = createFileRoute("/")({
   component: NarrateIQ,
 });
 
-type View = "login" | "dashboard" | "loading" | "brief" | "telemetry";
+type View = "home" | "login" | "dashboard" | "loading" | "brief" | "telemetry";
 
 function NarrateIQ() {
-  const [view, setView] = useState<View>("login");
+  const [view, setView] = useState<View>("home");
   const [persona, setPersona] = useState<Persona>("CFO");
   const [activeKpi, setActiveKpi] = useState("revenue");
   const [scenario, setScenario] = useState<Scenario["id"] | null>(null);
@@ -65,7 +66,7 @@ function NarrateIQ() {
 
   useEffect(() => {
     setNarration(null);
-    if (!brief || view === "login" || view === "dashboard") return;
+    if (!brief || view === "home" || view === "login" || view === "dashboard") return;
     let cancelled = false;
     setNarrating(true);
     narrate({ data: narrationPayload(brief) })
@@ -103,7 +104,7 @@ function NarrateIQ() {
       <header className="sticky top-0 z-30 border-b border-border bg-card">
         <div className="mx-auto flex max-w-[1240px] items-center gap-3 px-6 py-3">
           <button
-            onClick={() => view !== "login" && setView("dashboard")}
+            onClick={() => setView(view === "home" || view === "login" ? "home" : "dashboard")}
             className="font-serif text-[17px] font-bold tracking-tight text-foreground"
           >
             NarrateIQ
@@ -112,7 +113,7 @@ function NarrateIQ() {
           <span className="hidden text-[12px] text-muted-foreground sm:inline">
             KPI intelligence to action engine
           </span>
-          {view !== "login" && (
+          {view !== "login" && view !== "home" && (
             <div className="ml-auto flex items-center gap-3">
               <span className="border border-border bg-secondary px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
                 {PERSONA_LABEL[persona]}
@@ -126,6 +127,8 @@ function NarrateIQ() {
       </header>
 
       <main>
+        {view === "home" && <Home onEnter={() => setView("login")} />}
+
         {view === "login" && (
           <Login
             initialPersona={persona}
@@ -161,7 +164,7 @@ function NarrateIQ() {
         {view === "telemetry" && <Telemetry persona={persona} onBack={() => setView("dashboard")} />}
       </main>
 
-      {view !== "login" && (
+      {view !== "login" && view !== "home" && (
         <footer className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-4 border-t border-border px-6 py-4 text-[12px]">
           <button onClick={() => setView("telemetry")} className="text-primary underline underline-offset-2">
             System telemetry
@@ -177,7 +180,7 @@ function NarrateIQ() {
 
       {showContract && <SemanticContractModal onClose={() => setShowContract(false)} />}
 
-      <ScenarioBar active={scenario} onSelect={applyScenario} />
+      {view !== "home" && <ScenarioBar active={scenario} onSelect={applyScenario} />}
     </div>
   );
 }
