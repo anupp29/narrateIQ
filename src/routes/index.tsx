@@ -18,13 +18,13 @@ import { ScenarioBar } from "@/components/narrateiq/ScenarioBar";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NarrateIQ — KPI Intelligence-to-Action Engine" },
+      { title: "NarrateIQ: KPI Intelligence-to-Action Engine" },
       {
         name: "description",
         content:
           "NarrateIQ detects material KPI movements, ranks causal drivers with deterministic methods, communicates uncertainty, and assigns grounded actions.",
       },
-      { property: "og:title", content: "NarrateIQ — KPI Intelligence-to-Action Engine" },
+      { property: "og:title", content: "NarrateIQ: KPI Intelligence-to-Action Engine" },
       {
         property: "og:description",
         content:

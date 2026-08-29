@@ -19,7 +19,7 @@ export function Telemetry({ persona, onBack }: { persona: Persona; onBack: () =>
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
           <p className="text-[14px] font-semibold text-foreground">
-            Access restricted — CFO entitlement required
+            Access restricted. CFO entitlement required
           </p>
           <p className="max-w-sm text-[12.5px] text-muted-foreground">
             System telemetry contains cost and model-tier data outside your entitlement. This access
@@ -57,7 +57,7 @@ export function Telemetry({ persona, onBack }: { persona: Persona; onBack: () =>
       </div>
 
       <div className="mt-4 border-l-4 border-l-pos bg-pos/5 px-4 py-3 text-[12.5px] text-foreground">
-        3 of 10 requests incurred zero LLM cost — routed to abstention or noise classification before
+        3 of 10 requests incurred zero LLM cost, routed to abstention or noise classification before
         narrative generation.
       </div>
 
@@ -90,7 +90,7 @@ export function Telemetry({ persona, onBack }: { persona: Persona; onBack: () =>
                   <td className="px-3 py-2 text-foreground">{row.model}</td>
                   <td className="px-3 py-2 text-right font-mono">
                     {zero ? (
-                      <span className="text-muted-foreground">0 — no LLM triggered</span>
+                      <span className="text-muted-foreground">0 (no LLM triggered)</span>
                     ) : (
                       row.tokens
                     )}
@@ -106,7 +106,7 @@ export function Telemetry({ persona, onBack }: { persona: Persona; onBack: () =>
         </table>
       </div>
       <p className="mt-2 text-[11.5px] italic text-muted-foreground">
-        Model tier shown as "Sonnet" or "Haiku" — complex briefs use higher-capability tier, simpler
+        Model tier shown as "Sonnet" or "Haiku": complex briefs use higher-capability tier, simpler
         briefs are routed to cost-optimised tier.
       </p>
     </div>

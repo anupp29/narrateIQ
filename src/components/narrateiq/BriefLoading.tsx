@@ -24,7 +24,7 @@ export function BriefLoading({
         return;
       }
       const step = steps[index]!;
-      const ms = step.duration === "—" ? 200 : Math.round(parseFloat(step.duration) * 700);
+      const ms = step.duration === "n/a" ? 200 : Math.round(parseFloat(step.duration) * 700);
       setTimeout(() => {
         if (cancelled) return;
         index += 1;
@@ -56,13 +56,13 @@ export function BriefLoading({
           {steps.map((step, i) => {
             const complete = i < done;
             const active = i === done;
-            const skipped = step.duration === "—";
+            const skipped = step.duration === "n/a";
             return (
               <li key={step.step} className="flex gap-3 py-3.5">
                 <div className="mt-[3px] w-4 shrink-0">
                   {complete ? (
                     skipped ? (
-                      <span className="text-[13px] text-muted-foreground">—</span>
+                      <span className="text-[13px] text-muted-foreground">n/a</span>
                     ) : (
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--pos)" strokeWidth="3">
                         <path d="M20 6 9 17l-5-5" />

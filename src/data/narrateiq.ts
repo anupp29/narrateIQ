@@ -125,7 +125,7 @@ export const KPI_DATA: Record<string, Kpi> = {
     sparkline: [84000, 96000, 103000, 112000, 122000, 127000],
     historyMonths: 6,
     accessRoles: ["CFO"],
-    detectionMethod: "Insufficient history — minimum 24 data points required, 6 available",
+    detectionMethod: "Insufficient history, minimum 24 data points required, 6 available",
   },
 };
 
@@ -143,28 +143,28 @@ export const SCENARIOS: Record<"A" | "B" | "C" | "D", Scenario> = {
   A: {
     id: "A",
     label: "Multi-factor Revenue Anomaly",
-    description: "Revenue down 8.2% — two interacting drivers, one high confidence, one medium",
+    description: "Revenue down 8.2%, two interacting drivers, one high confidence, one medium",
     activeKPI: "revenue",
     activePersona: "CFO",
   },
   B: {
     id: "B",
     label: "Sparse History Abstention",
-    description: "New market KPI — insufficient history to conclude",
+    description: "New market KPI, insufficient history to conclude",
     activeKPI: "newMarket",
     activePersona: "CFO",
   },
   C: {
     id: "C",
     label: "Contradictory Evidence Abstention",
-    description: "Return rate up and satisfaction up — system cannot reconcile",
+    description: "Return rate up and satisfaction up, system cannot reconcile",
     activeKPI: "returnRate",
     activePersona: "CFO",
   },
   D: {
     id: "D",
     label: "Role-Based Access Demo",
-    description: "Switch to RSM — restricted KPIs and different narrative",
+    description: "Switch to RSM, restricted KPIs and different narrative",
     activeKPI: "revenue",
     activePersona: "RSM",
   },
@@ -195,7 +195,7 @@ export const PROCESSING_STEPS: ProcessingStep[] = [
   },
   {
     step: "Causal inference",
-    method: "DoWhy — backdoor criterion",
+    method: "DoWhy (backdoor criterion)",
     type: "NON-LLM",
     duration: "1.2s",
     result: "2 drivers validated, 1 rejected as non-causal",
@@ -209,7 +209,7 @@ export const PROCESSING_STEPS: ProcessingStep[] = [
   },
   {
     step: "Narrative generation",
-    method: "LLM — narration of pre-computed findings only",
+    method: "LLM (narration of pre-computed findings only)",
     type: "LLM",
     duration: "2.1s",
     result: "Brief ready",
@@ -313,8 +313,8 @@ export interface AbstentionBrief {
 
 const ABSTENTION_STEPS = (reason: string): ProcessingStep[] =>
   PROCESSING_STEPS.map((s, i) => {
-    if (i === 2) return { ...s, result: `Abstention triggered — ${reason}` };
-    if (i > 2) return { ...s, duration: "—", result: "Skipped — zero LLM cost" };
+    if (i === 2) return { ...s, result: `Abstention triggered: ${reason}` };
+    if (i > 2) return { ...s, duration: "n/a", result: "Skipped (zero LLM cost)" };
     return s;
   });
 
@@ -333,7 +333,7 @@ export const BRIEF_REVENUE_CFO: Brief = {
       "South region SMB revenue declined $374,000 (8.2%) over the 21-day period ending today, sustaining below baseline for 15 consecutive trading days. This movement is statistically significant at 3.1 standard deviations above expected variance and classified as HIGH materiality based on both significance and revenue at risk.",
     table: [
       {
-        metric: "Revenue — South, SMB",
+        metric: "Revenue: South, SMB",
         period: "Last 21 days",
         value: "$4.20M",
         vsBaseline: "-$374K (-8.2%)",
@@ -352,7 +352,7 @@ export const BRIEF_REVENUE_CFO: Brief = {
   },
   whyItChanged: {
     summary:
-      "Causal inference identified two statistically validated drivers accounting for 90% of the observed decline. A third candidate — seasonal variation — was tested and rejected as non-causal at this time window.",
+      "Causal inference identified two statistically validated drivers accounting for 90% of the observed decline. A third candidate, seasonal variation, was tested and rejected as non-causal at this time window.",
     hypotheses: [
       {
         rank: 1,
@@ -361,7 +361,7 @@ export const BRIEF_REVENUE_CFO: Brief = {
         contributionAbs: "$251K",
         confidence: "HIGH",
         confidenceScore: 0.84,
-        method: "DoWhy CausalModel — backdoor criterion",
+        method: "DoWhy CausalModel (backdoor criterion)",
         type: "NON-LLM",
         rejected: false,
         evidence: [
@@ -375,8 +375,8 @@ export const BRIEF_REVENUE_CFO: Brief = {
           {
             type: "SQL",
             label: "SQL analysis",
-            text: "Win rate in South/SMB dropped from 34% to 19% in the same window — a 44% relative decline concentrated in deals above $5K ACV.",
-            source: "CRM Daily Feed — waterfall decomposition",
+            text: "Win rate in South/SMB dropped from 34% to 19% in the same window, a 44% relative decline concentrated in deals above $5K ACV.",
+            source: "CRM Daily Feed, waterfall decomposition",
             relevanceScore: "88%",
           },
         ],
@@ -388,7 +388,7 @@ export const BRIEF_REVENUE_CFO: Brief = {
         contributionAbs: "$86K",
         confidence: "MEDIUM",
         confidenceScore: 0.61,
-        method: "DoWhy CausalModel — backdoor criterion",
+        method: "DoWhy CausalModel (backdoor criterion)",
         type: "NON-LLM",
         rejected: false,
         evidence: [
@@ -428,10 +428,10 @@ export const BRIEF_REVENUE_CFO: Brief = {
       rank: 1,
       action: "Initiate emergency competitive pricing review for South region SMB segment",
       lever: "Pricing strategy",
-      owner: "VP Sales — South Region",
+      owner: "VP Sales, South Region",
       deadline: "48 hours",
       expectedImpact:
-        "Arrest further win-rate decline — estimated revenue protection $180K over next 30 days",
+        "Arrest further win-rate decline, estimated revenue protection $180K over next 30 days",
       confidence: "HIGH",
       decisionRights: "VP Sales with CFO approval above $50K discount threshold",
       visibleTo: ["CFO"],
@@ -443,9 +443,9 @@ export const BRIEF_REVENUE_CFO: Brief = {
       owner: "CTO",
       deadline: "Immediate",
       expectedImpact:
-        "Restore normal invoice cycle within 5 days — unblock $86K in delayed revenue recognition",
+        "Restore normal invoice cycle within 5 days, unblock $86K in delayed revenue recognition",
       confidence: "HIGH",
-      decisionRights: "CTO — no approval threshold",
+      decisionRights: "CTO, no approval threshold",
       visibleTo: ["CFO"],
     },
     {
@@ -454,9 +454,9 @@ export const BRIEF_REVENUE_CFO: Brief = {
       lever: "Customer retention",
       owner: "Customer Success Lead",
       deadline: "72 hours",
-      expectedImpact: "Estimated 30% retention of at-risk ACV — approximately $65K protected",
+      expectedImpact: "Estimated 30% retention of at-risk ACV, approximately $65K protected",
       confidence: "MEDIUM",
-      decisionRights: "Customer Success Lead — standard retention playbook",
+      decisionRights: "Customer Success Lead, standard retention playbook",
       visibleTo: ["CFO", "RSM"],
     },
   ],
@@ -474,7 +474,7 @@ export const BRIEF_REVENUE_CFO: Brief = {
 };
 
 export const BRIEF_REVENUE_RSM: Brief = {
-  kpiName: "Total Revenue — Your Region",
+  kpiName: "Total Revenue: Your Region",
   persona: "Regional Sales Manager",
   abstain: false,
   generatedAt: "Today at 09:14 AM",
@@ -484,14 +484,14 @@ export const BRIEF_REVENUE_RSM: Brief = {
   feedbackCount: 3,
   restrictedActionsCount: 2,
   restrictedActionsNotice:
-    "2 additional actions are available to CFO and VP Sales — they fall outside your decision rights. Your VP Sales has been automatically notified.",
+    "2 additional actions are available to CFO and VP Sales; they fall outside your decision rights. Your VP Sales has been automatically notified.",
   processingSteps: PROCESSING_STEPS,
   whatChanged: {
     summary:
       "Your region's SMB revenue declined $374,000 (8.2%) over the past three weeks, sustained below your target for 15 consecutive trading days. This is classified as a material anomaly requiring your immediate attention.",
     table: [
       {
-        metric: "Revenue — Your Region, SMB",
+        metric: "Revenue: Your Region, SMB",
         period: "Last 21 days",
         value: "$4.20M",
         vsBaseline: "-$374K (-8.2%)",
@@ -519,7 +519,7 @@ export const BRIEF_REVENUE_RSM: Brief = {
         contributionAbs: "$251K",
         confidence: "HIGH",
         confidenceScore: 0.84,
-        method: "DoWhy CausalModel — backdoor criterion",
+        method: "DoWhy CausalModel (backdoor criterion)",
         type: "NON-LLM",
         rejected: false,
         evidence: [
@@ -539,7 +539,7 @@ export const BRIEF_REVENUE_RSM: Brief = {
         contributionAbs: "$86K",
         confidence: "MEDIUM",
         confidenceScore: 0.61,
-        method: "DoWhy CausalModel — backdoor criterion",
+        method: "DoWhy CausalModel (backdoor criterion)",
         type: "NON-LLM",
         rejected: false,
         evidence: [
@@ -557,13 +557,13 @@ export const BRIEF_REVENUE_RSM: Brief = {
   whatToDo: [
     {
       rank: 1,
-      action: "Review open pipeline for pricing objections — identify deals at immediate risk",
+      action: "Review open pipeline for pricing objections, identify deals at immediate risk",
       lever: "Pipeline management",
-      owner: "You — Regional Sales Manager",
+      owner: "You, Regional Sales Manager",
       deadline: "Today",
       expectedImpact: "Identify and protect top 20% of at-risk deals in your pipeline",
       confidence: "HIGH",
-      decisionRights: "Within your authority — standard pipeline review",
+      decisionRights: "Within your authority, standard pipeline review",
       visibleTo: ["RSM"],
     },
     {
@@ -572,9 +572,9 @@ export const BRIEF_REVENUE_RSM: Brief = {
       lever: "Customer retention",
       owner: "You + Customer Success Lead",
       deadline: "48 hours",
-      expectedImpact: "Reduce churn risk in key accounts — flag to VP Sales if accounts exceed $50K ACV",
+      expectedImpact: "Reduce churn risk in key accounts, flag to VP Sales if accounts exceed $50K ACV",
       confidence: "MEDIUM",
-      decisionRights: "Within your authority — standard retention playbook",
+      decisionRights: "Within your authority, standard retention playbook",
       visibleTo: ["RSM"],
     },
   ],
@@ -596,7 +596,7 @@ export const BRIEF_NEW_MARKET: AbstentionBrief = {
   abstentionReason:
     "This KPI has only 6 months of history. STL decomposition requires a minimum of 24 data points to establish a reliable seasonal baseline. Running anomaly detection on fewer data points produces a false positive rate above acceptable thresholds. Generating a confident root cause explanation under these conditions would be misleading.",
   whatWeObserve:
-    "Revenue has grown from $84K to $127K over 6 months — a 51% cumulative increase. The most recent month shows 4% month-on-month growth. Without a statistical baseline, this cannot be classified as an anomaly, an on-track trend, or noise. It is simply what the data shows.",
+    "Revenue has grown from $84K to $127K over 6 months, a 51% cumulative increase. The most recent month shows 4% month-on-month growth. Without a statistical baseline, this cannot be classified as an anomaly, an on-track trend, or noise. It is simply what the data shows.",
   hypothesesConsidered: [],
   resolutionPath: {
     action:
@@ -606,13 +606,13 @@ export const BRIEF_NEW_MARKET: AbstentionBrief = {
     owner: "Analytics Lead",
     timeline: "18 months for full statistical confidence. Projection benchmark available immediately.",
   },
-  signal: "ABSTAIN — SPARSE HISTORY",
+  signal: "ABSTAIN: SPARSE HISTORY",
   generatedAt: "Today at 09:22 AM",
   totalLatency: "0.8s",
   tokenCount: 0,
   estimatedCost: "$0.000",
   feedbackCount: 0,
-  note: "Zero LLM cost — abstention determined by deterministic logic before narrative generation was triggered.",
+  note: "Zero LLM cost. Abstention was determined by deterministic logic before narrative generation was triggered.",
   processingSteps: ABSTENTION_STEPS("sparse history"),
 };
 
@@ -621,26 +621,26 @@ export const BRIEF_RETURN_CONTRADICTORY: AbstentionBrief = {
   persona: "CFO",
   abstain: true,
   abstentionType: "CONTRADICTORY_EVIDENCE",
-  abstentionBanner: "Contradictory evidence detected — analyst review required",
+  abstentionBanner: "Contradictory evidence detected, analyst review required",
   abstentionReason:
     "Return rate increased 18% (anomalous, z-score 2.6). Simultaneously, customer satisfaction scores in the same segment increased 9% over the same window. These two signals cannot be explained by the same root cause. Quality-driven returns would produce falling satisfaction. NarrateIQ does not generate a root cause conclusion when evidence is internally contradictory.",
   whatWeObserve:
-    "Product Return Rate moved from 6.1% to 7.2% over two weeks — a statistically significant increase. Customer satisfaction (sourced separately from NPS platform, weekly cadence) increased from 72 to 78 in the same window.",
+    "Product Return Rate moved from 6.1% to 7.2% over two weeks, a statistically significant increase. Customer satisfaction (sourced separately from NPS platform, weekly cadence) increased from 72 to 78 in the same window.",
   hypothesesConsidered: [
     {
       hypothesis: "Product quality degradation",
       status: "REJECTED",
-      reason: "Satisfaction scores rising — inconsistent with quality decline.",
+      reason: "Satisfaction scores rising, inconsistent with quality decline.",
     },
     {
       hypothesis: "Returns policy change",
-      status: "PLAUSIBLE — UNCONFIRMED",
+      status: "PLAUSIBLE: UNCONFIRMED",
       reason:
-        "Would explain returns increase without satisfaction impact. No policy change found in system logs — requires manual verification.",
+        "Would explain returns increase without satisfaction impact. No policy change found in system logs, requires manual verification.",
     },
     {
       hypothesis: "New customer cohort behaviour",
-      status: "PLAUSIBLE — UNCONFIRMED",
+      status: "PLAUSIBLE: UNCONFIRMED",
       reason:
         "New customer mix increased this period. New customers typically return more. Would not affect satisfaction if product quality is sound.",
     },
@@ -651,13 +651,13 @@ export const BRIEF_RETURN_CONTRADICTORY: AbstentionBrief = {
     owner: "Analytics Lead + Returns Operations",
     timeline: "2 business days",
   },
-  signal: "ABSTAIN — CONTRADICTORY EVIDENCE",
+  signal: "ABSTAIN: CONTRADICTORY EVIDENCE",
   generatedAt: "Today at 09:31 AM",
   totalLatency: "2.1s",
   tokenCount: 0,
   estimatedCost: "$0.000",
   feedbackCount: 0,
-  note: "Zero LLM cost — abstention triggered before narrative generation.",
+  note: "Zero LLM cost. Abstention triggered before narrative generation.",
   processingSteps: ABSTENTION_STEPS("contradictory evidence"),
 };
 
@@ -680,15 +680,15 @@ export const BRIEF_CAC_CFO: Brief = {
   feedbackCount: 1,
   processingSteps: PROCESSING_STEPS.map((s) =>
     s.type === "LLM"
-      ? { ...s, method: "LLM (Haiku tier) — narration of pre-computed findings only", duration: "0.7s" }
+      ? { ...s, method: "LLM (Haiku tier), narration of pre-computed findings only", duration: "0.7s" }
       : s,
   ),
   whatChanged: {
     summary:
-      "Customer Acquisition Cost rose from a $304 baseline to $340 per customer (+12.0%) over the last eight reporting weeks. At z = 1.8 the movement is below the anomaly threshold of 2.0 and is classified as WATCH with MEDIUM materiality — directional, sustained, but not yet statistically conclusive.",
+      "Customer Acquisition Cost rose from a $304 baseline to $340 per customer (+12.0%) over the last eight reporting weeks. At z = 1.8 the movement is below the anomaly threshold of 2.0 and is classified as WATCH with MEDIUM materiality, directional, sustained, but not yet statistically conclusive.",
     table: [
       {
-        metric: "CAC — blended, all segments",
+        metric: "CAC, blended, all segments",
         period: "Last 8 weeks",
         value: "$340",
         vsBaseline: "+$36 (+12.0%)",
@@ -716,7 +716,7 @@ export const BRIEF_CAC_CFO: Brief = {
         contributionAbs: "+$26 per customer",
         confidence: "HIGH",
         confidenceScore: 0.8,
-        method: "DoWhy CausalModel — backdoor criterion",
+        method: "DoWhy CausalModel (backdoor criterion)",
         type: "NON-LLM",
         rejected: false,
         evidence: [
@@ -760,7 +760,7 @@ export const BRIEF_CAC_CFO: Brief = {
       deadline: "5 business days",
       expectedImpact: "Recover an estimated $18 of the $36 CAC increase without volume loss",
       confidence: "MEDIUM",
-      decisionRights: "VP Marketing — within existing budget authority",
+      decisionRights: "VP Marketing, within existing budget authority",
       visibleTo: ["CFO", "RSM"],
     },
   ],
@@ -777,16 +777,16 @@ export const BRIEF_CAC_CFO: Brief = {
 };
 
 export const TELEMETRY_LOG = [
-  { timestamp: "Today 09:14", kpi: "Total Revenue", persona: "CFO", model: "LLM — Sonnet", tokens: 847, latency: 5000, cost: "$0.004" },
-  { timestamp: "Today 09:01", kpi: "Total Revenue", persona: "RSM", model: "LLM — Sonnet", tokens: 612, latency: 3800, cost: "$0.003" },
-  { timestamp: "Yesterday 16:42", kpi: "Product Return Rate", persona: "CFO", model: "LLM — Sonnet", tokens: 934, latency: 5200, cost: "$0.005" },
-  { timestamp: "Yesterday 14:20", kpi: "Customer Acquisition Cost", persona: "CFO", model: "LLM — Haiku", tokens: 445, latency: 1800, cost: "$0.001" },
-  { timestamp: "Yesterday 11:05", kpi: "New Market Revenue", persona: "CFO", model: "None — abstention", tokens: 0, latency: 820, cost: "$0.000" },
-  { timestamp: "2 days ago 15:30", kpi: "Total Revenue", persona: "CFO", model: "LLM — Sonnet", tokens: 891, latency: 5100, cost: "$0.004" },
-  { timestamp: "2 days ago 10:15", kpi: "Average Order Value", persona: "RSM", model: "None — noise signal", tokens: 0, latency: 210, cost: "$0.000" },
-  { timestamp: "3 days ago 09:45", kpi: "Product Return Rate", persona: "CFO", model: "LLM — Sonnet", tokens: 778, latency: 4700, cost: "$0.004" },
-  { timestamp: "3 days ago 08:30", kpi: "Customer Acquisition Cost", persona: "CFO", model: "LLM — Haiku", tokens: 502, latency: 2100, cost: "$0.001" },
-  { timestamp: "4 days ago 17:00", kpi: "Total Revenue", persona: "CFO", model: "LLM — Sonnet", tokens: 866, latency: 4900, cost: "$0.004" },
+  { timestamp: "Today 09:14", kpi: "Total Revenue", persona: "CFO", model: "LLM (Sonnet)", tokens: 847, latency: 5000, cost: "$0.004" },
+  { timestamp: "Today 09:01", kpi: "Total Revenue", persona: "RSM", model: "LLM (Sonnet)", tokens: 612, latency: 3800, cost: "$0.003" },
+  { timestamp: "Yesterday 16:42", kpi: "Product Return Rate", persona: "CFO", model: "LLM (Sonnet)", tokens: 934, latency: 5200, cost: "$0.005" },
+  { timestamp: "Yesterday 14:20", kpi: "Customer Acquisition Cost", persona: "CFO", model: "LLM (Haiku)", tokens: 445, latency: 1800, cost: "$0.001" },
+  { timestamp: "Yesterday 11:05", kpi: "New Market Revenue", persona: "CFO", model: "None (abstention)", tokens: 0, latency: 820, cost: "$0.000" },
+  { timestamp: "2 days ago 15:30", kpi: "Total Revenue", persona: "CFO", model: "LLM (Sonnet)", tokens: 891, latency: 5100, cost: "$0.004" },
+  { timestamp: "2 days ago 10:15", kpi: "Average Order Value", persona: "RSM", model: "None (noise signal)", tokens: 0, latency: 210, cost: "$0.000" },
+  { timestamp: "3 days ago 09:45", kpi: "Product Return Rate", persona: "CFO", model: "LLM (Sonnet)", tokens: 778, latency: 4700, cost: "$0.004" },
+  { timestamp: "3 days ago 08:30", kpi: "Customer Acquisition Cost", persona: "CFO", model: "LLM (Haiku)", tokens: 502, latency: 2100, cost: "$0.001" },
+  { timestamp: "4 days ago 17:00", kpi: "Total Revenue", persona: "CFO", model: "LLM (Sonnet)", tokens: 866, latency: 4900, cost: "$0.004" },
 ];
 
 export const SEMANTIC_CONTRACT = [
@@ -851,7 +851,7 @@ export const SEMANTIC_CONTRACT = [
     cadence: "Monthly, 3rd business day",
     owner: "Head of Market Expansion",
     thresholds:
-      "Statistical: not applicable — 6 of 24 required data points · Business: variance vs launch case ≥ ±15%",
+      "Statistical: not applicable, 6 of 24 required data points · Business: variance vs launch case ≥ ±15%",
     accessRoles: ["CFO"],
     lastUpdated: "12 days ago, 09:00 UTC",
   },

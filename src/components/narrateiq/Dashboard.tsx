@@ -59,7 +59,7 @@ function KpiCard({
           />
           {kpi.signal === "SPARSE" && (
             <p className="mt-1 text-[11px] italic text-muted-foreground">
-              6 months of data — baseline not yet established
+              6 months of data. Baseline not yet established
             </p>
           )}
         </div>
@@ -68,19 +68,19 @@ function KpiCard({
           <p className={freshnessClass(kpi.freshness)}>
             {kpi.source} ·{" "}
             {kpi.id === "newMarket"
-              ? "Updated 12 days ago — monthly cadence"
+              ? "Updated 12 days ago (monthly cadence)"
               : `Updated ${kpi.lastUpdated}`}
           </p>
           <p className="mt-1 text-foreground">
             {kpi.signal === "SPARSE"
-              ? "z-score: indeterminate — insufficient history"
+              ? "z-score: indeterminate (insufficient history)"
               : kpi.signal === "NOISE"
                 ? `z = ${kpi.zScore} · Within normal variance`
                 : `z = ${kpi.zScore} · Materiality: ${kpi.materiality}`}
           </p>
           <p className="mt-1 italic text-muted-foreground">
             {kpi.signal === "SPARSE"
-              ? "Detection: Not applicable — 6 of 24 required data points available"
+              ? "Detection: Not applicable, 6 of 24 required data points available"
               : `Detected by: ${kpi.detectionMethod}`}
           </p>
         </div>
@@ -99,7 +99,7 @@ function KpiCard({
             disabled
             className="flex w-full cursor-not-allowed items-center justify-center gap-2 border border-border bg-secondary px-3 py-2 text-[12px] font-semibold text-muted-foreground"
           >
-            <LockIcon small /> Access restricted — CFO entitlement required
+            <LockIcon small /> Access restricted. CFO entitlement required
           </button>
         ) : kpi.signal === "NOISE" ? (
           <button
@@ -161,7 +161,7 @@ export function Dashboard({
         <div className="flex items-center justify-between border-l-4 border-l-signal-watch bg-warn px-6 py-3">
           <p className="text-[13px] font-medium text-warn-foreground">
             {anomalies.length} material {anomalies.length === 1 ? "anomaly" : "anomalies"} detected
-            requiring attention — {now}
+            requiring attention · {now}
           </p>
           <a
             href={`#kpi-${anomalies[0]!.id}`}
