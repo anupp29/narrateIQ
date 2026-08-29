@@ -221,11 +221,13 @@ export function seasonalityHypothesis(
     estimate: est,
     impactUsd: round(impact, 0),
     refutations,
-    rejected: explains < 0.25,
+    rejected: explains < 0.25 || est.pValue > 0.05,
     rejectionReason:
       explains < 0.25
         ? `Seasonality explains only ${round(explains * 100, 1)} percent of the observed change, below the 25 percent sufficiency bar`
-        : undefined,
+        : est.pValue > 0.05
+          ? `Seasonality accounts for ${round(explains * 100, 1)} percent of the change but the coefficient is not distinguishable from zero at the 5 percent level (p = ${est.pValue}), so it is not accepted as an explanation`
+          : undefined,
     detail: `The seasonal index moved ${round(deltaSeason, 4)} between windows, which accounts for ${round(explains * 100, 1)} percent of the observed change.`,
   };
 }

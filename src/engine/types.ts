@@ -85,7 +85,7 @@ export interface TelemetryRecord {
   costUsd: number;
   cacheHit: boolean;
   rowsScanned: number;
-  guardVerdict: "PASSED" | "REPAIRED" | "NOT_RUN";
+  guardVerdict: string;
 }
 
 export interface SourceStatus {
@@ -158,7 +158,7 @@ export interface BriefBase {
   feedbackCount: number;
   appliedCorrections: string[];
   access: { rowFilter: string | null; maskedColumns: string[]; rule: string };
-  narrative: { text: string; source: "LLM" | "DETERMINISTIC_TEMPLATE"; guard: string };
+  narrative: { text: string; source: "LLM" | "LLM_CACHED" | "DETERMINISTIC_TEMPLATE"; guard: string };
 }
 
 export interface DecisionBriefResult extends BriefBase {

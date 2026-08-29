@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Persona } from "@/data/narrateiq";
+import type { Persona } from "@/engine/rbac";
 
 const PERSONAS: { id: Persona; title: string; desc: string }[] = [
   {
