@@ -4,6 +4,8 @@
 
 Built for Track 3, BusinessIntelligence.ai, Accenture Innovation Challenge 2026.
 
+The commercial case, pilot plan, value model and risk register are in [BUSINESS_PROPOSAL.md](./BUSINESS_PROPOSAL.md). This document covers the product and the engineering.
+
 ---
 
 ## 1. The problem, restated
