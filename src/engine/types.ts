@@ -33,8 +33,8 @@ export interface DriverFinding {
   refutations: Refutation[];
   evidence: EvidenceItem[];
   rejected: boolean;
-  rejectionReason?: string;
-  priorNote?: string;
+  rejectionReason?: string | undefined;
+  priorNote?: string | undefined;
 }
 
 export interface MonitoringPlan {
@@ -169,7 +169,7 @@ export interface DecisionBriefResult extends BriefBase {
   unexplainedPct: number;
   actions: ActionRec[];
   restrictedActions: number;
-  restrictedNotice?: string;
+  restrictedNotice?: string | undefined;
   uncertainty: {
     statement: string;
     resolution: string;
@@ -188,8 +188,8 @@ export interface AbstentionResult extends BriefBase {
   rule: string;
   observation: string;
   hypothesesConsidered: { hypothesis: string; status: string; reason: string }[];
-  clarificationQuestion?: string;
-  clarificationOptions?: { id: string; label: string; consequence: string }[];
+  clarificationQuestion?: string | undefined;
+  clarificationOptions?: { id: string; label: string; consequence: string }[] | undefined;
   resolution: { action: string; interim?: string; owner: string; timeline: string };
   evidence: EvidenceItem[];
 }

@@ -154,7 +154,7 @@ export interface Hypothesis {
   impactUsd: number;
   refutations: RefutationResult[];
   rejected: boolean;
-  rejectionReason?: string;
+  rejectionReason?: string | undefined;
   detail: string;
 }
 
