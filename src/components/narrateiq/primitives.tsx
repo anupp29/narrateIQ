@@ -10,7 +10,7 @@ export function SignalBadge({ signal }: { signal: string }) {
   };
   return (
     <span
-      className={`inline-block px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.12em] ${map[signal] ?? map.NOISE}`}
+      className={`inline-block px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.12em] ${map[signal] ?? ""}`}
     >
       {signal}
     </span>
@@ -41,7 +41,7 @@ export function ConfidenceBadge({ confidence }: { confidence: string }) {
   return (
     <span
       className={`inline-block border px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.1em] ${
-        map[confidence] ?? map.LOW
+        map[confidence] ?? ""
       }`}
     >
       {confidence}
@@ -56,7 +56,7 @@ export function FreshnessDot({ status }: { status: string }) {
     overdue: "bg-signal-anomaly",
   };
   return (
-    <span className={`inline-block h-[6px] w-[6px] rounded-full ${map[status] ?? map.current}`} />
+    <span className={`inline-block h-[6px] w-[6px] rounded-full ${map[status] ?? ""}`} />
   );
 }
 

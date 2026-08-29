@@ -311,13 +311,12 @@ export interface AbstentionBrief {
   processingSteps: ProcessingStep[];
 }
 
-const ABSTENTION_STEPS = (reason: string): ProcessingStep[] => [
-  PROCESSING_STEPS[0],
-  PROCESSING_STEPS[1],
-  { ...PROCESSING_STEPS[2], result: `Abstention triggered — ${reason}` },
-  { ...PROCESSING_STEPS[3], duration: "—", result: "Skipped — zero LLM cost" },
-  { ...PROCESSING_STEPS[4], duration: "—", result: "Skipped — zero LLM cost" },
-];
+const ABSTENTION_STEPS = (reason: string): ProcessingStep[] =>
+  PROCESSING_STEPS.map((s, i) => {
+    if (i === 2) return { ...s, result: `Abstention triggered — ${reason}` };
+    if (i > 2) return { ...s, duration: "—", result: "Skipped — zero LLM cost" };
+    return s;
+  });
 
 export const BRIEF_REVENUE_CFO: Brief = {
   kpiName: "Total Revenue",
