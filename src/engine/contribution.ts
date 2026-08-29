@@ -88,7 +88,7 @@ export function decomposeRevenue(persona: Persona, windowDays = 28): RevenueDeco
 
   const totalDelta = sum(cells.map((c) => c.delta));
   cells.forEach((c) => {
-    c.shareOfDelta = totalDelta === 0 ? 0 : round((c.delta / totalDelta) * 100, 1);
+  c.shareOfDelta = totalDelta === 0 ? 0 : Math.max(-100, Math.min(100, round((c.delta / totalDelta) * 100, 1)));
   });
   cells.sort((a, b) => a.delta - b.delta);
 
@@ -123,7 +123,7 @@ export function decomposeRevenue(persona: Persona, windowDays = 28): RevenueDeco
     },
     concentration:
       worst && totalDelta !== 0
-        ? { label: `${worst.region} ${worst.segment}`, shareOfDelta: round((worst.delta / totalDelta) * 100, 1) }
+        ? { label: `${worst.region} ${worst.segment}`, shareOfDelta: Math.max(-100, Math.min(100, round((worst.delta / totalDelta) * 100, 1))) }
         : null,
     windowDays,
   };
