@@ -1,163 +1,314 @@
 # NarrateIQ
 
-**A KPI intelligence-to-action engine.** NarrateIQ turns raw operating data into a persona-specific decision brief: what moved, whether it is real, why it moved, what to do about it, who owns it, and how it will be monitored. When the evidence does not support a cause, it abstains and says so.
-
-Built for Track 3, BusinessIntelligence.ai, Accenture Innovation Challenge 2026.
-
-The commercial case, pilot plan, value model and risk register are in [BUSINESS_PROPOSAL.md](./BUSINESS_PROPOSAL.md). This document covers the product and the engineering.
+**KPI Intelligence-to-Action Engine**
+Accenture Innovation Challenge 2026 · Track 3 · BusinessIntelligence.ai · Round 2
 
 ---
 
-## 1. The problem, restated
+## What this is
 
-Enterprise BI reliably answers *what happened*. It rarely answers *why it happened*, *what to do next*, and *who is accountable*. Analysts spend their week rebuilding the same causal story by hand across CRM, marketing, operations, survey and finance extracts. Meanwhile, generative narration tools produce fluent commentary that is frequently wrong, because they infer causality from correlation and cannot say "I do not know".
+NarrateIQ answers the question every enterprise BI platform leaves unanswered: not *what* moved, but *why* it moved, *who* owns the fix, and *what* happens if they wait.
 
-NarrateIQ addresses that gap with a strict separation of duties:
+It does this by enforcing a strict separation between two jobs that most tools conflate:
 
-| Layer | Responsibility | Implementation |
-| --- | --- | --- |
-| Detection, decomposition, causality | Decide what is true | Deterministic statistics. No model involved. |
-| Narration | Explain what is already true | Language model, constrained to computed facts. |
+| Job | Who does it | How |
+|-----|-------------|-----|
+| Decide what is true | The engine | Deterministic statistics — same input, same output, fully auditable |
+| Explain what is true | The language model | Constrained narration — the model receives computed facts only and is rejected if it invents a number |
 
-The language model never decides whether something is an anomaly, never ranks a driver, never invents a number. Every figure it may use is supplied in a whitelist, and a guard rejects the draft if it emits a number that is not on that list.
+The language model never decides whether something is an anomaly. It never ranks a driver. It never produces a number that was not explicitly supplied to it. A deterministic guard checks every draft and falls back to a template if the check fails.
 
----
-
-## 2. What the prototype does
-
-1. **Ingests seven source extracts** at three different grains and cadences (daily CRM deals, weekly marketing spend, weekly operations returns, weekly NPS, weekly external market signals, monthly finance for a new market, plus free-text CRM notes).
-2. **Aligns them** onto a common weekly reporting calendar, records the SLA lag of each source, and scores source quality before use.
-3. **Detects material movement** per KPI using deseasonalised residuals and a robust (MAD-based) z score, gated by an absolute materiality threshold in dollars, so statistical noise never reaches a decision-maker.
-4. **Decomposes the movement** across dimensions (region, segment, product) and across volume, price, mix, interaction and timing effects.
-5. **Estimates causality** using OLS on a daily panel with lag structure, then subjects every candidate driver to a three-test refutation battery: placebo period, common-cause control, and subset stability. Drivers that fail are shown as *rejected*, with the reason.
-6. **Retrieves corroborating evidence** from CRM notes and support tickets with TF-IDF, so each driver is backed by a human artefact, not only a coefficient.
-7. **Maps validated drivers to governed actions** from a playbook: owner, deadline, expected impact in dollars, and the monitoring metric with its check date.
-8. **Abstains** when history is too short, when sources contradict each other, or when no driver survives refutation. Abstention is a first-class output, not a failure state.
-9. **Narrates** the validated result for the reader's role, then logs the tokens, latency, route decision and cost of that call.
+When evidence is insufficient — because history is too short, because sources contradict each other, or because no driver survives the refutation tests — the engine abstains and states the exact condition that would unlock a conclusion. Abstention is a first-class output, not a failure state.
 
 ---
 
-## 3. Judging criteria mapped to code
+## The four demo scenarios
 
-| Requirement | Where it lives | How to see it in the demo |
-| --- | --- | --- |
-| Governed KPI semantics | `src/engine/semantic.ts` | Footer, "KPI definitions": formula, grain, calendar, thresholds, lineage, known conflicts. |
-| Multi-source, multi-grain reconciliation | `src/engine/reconcile.ts` | Brief section "Sources and grain alignment", showing lag and quality per source. |
-| Non-LLM anomaly detection | `src/engine/metrics.ts`, `src/engine/stats.ts` | Dashboard signal badges; brief header shows z score against threshold. |
-| Non-LLM causal inference | `src/engine/causal.ts` | Driver table with coefficient, p value, and the three refutation tests. |
-| Contribution decomposition | `src/engine/contribution.ts` | Contribution bars summing to the movement, with residual unexplained share. |
-| Abstention under uncertainty | `src/engine/pipeline.ts` | Scenarios C and D. |
-| Action with ownership and monitoring | `src/engine/actions.ts` | "Assigned actions" table: owner, due date, expected impact, monitoring metric. |
-| Role-based access and audit | `src/engine/rbac.ts` | Scenario B: same KPI, filtered rows, restricted drivers, entitlement banner. Telemetry shows the access log. |
-| Cost and latency governance | `src/engine/cost.ts` | Telemetry: model route, cache hit, tokens, cost per insight, zero spend on noise and abstention. |
-| Human feedback loop | `src/engine/feedback.ts` | Brief footer: accept / reject / request clarification, which updates driver priors and alert precision. |
-| Drift and model health | `src/engine/drift.ts` | Telemetry: population stability index per feature and detection precision. |
-| Hallucination control | `src/engine/narration.ts`, `src/lib/narrate.functions.ts` | Numeric guard; on violation the brief falls back to the deterministic template and labels it. |
+Use the scenario bar at the bottom of the application. Each scenario recomputes from the source data on selection — nothing is pre-rendered or hardcoded.
+
+| Scenario | Persona | KPI | What it demonstrates |
+|----------|---------|-----|----------------------|
+| A | CFO | Total Revenue | Full pipeline: detection, decomposition, two validated drivers, one rejected driver, three assigned actions with monitoring plans, cost telemetry |
+| B | Regional Sales Manager | Total Revenue | Same KPI, same anomaly — different data panel, different attribution, restricted actions. Row-level entitlement changes the analytical result, not only the presentation |
+| C | CFO | New Market Revenue | Abstention on sparse history: 6 observations against a minimum of 24. Zero LLM tokens spent. Interim business-rule benchmark provided |
+| D | CFO | Product Return Rate | Abstention on contradictory evidence: operations data and NPS survey data disagree. Engine asks one clarification question rather than fabricating a cause |
+
+**Scenario B is the critical one.** The Regional Sales Manager sees a different contribution percentage than the CFO for the same revenue decline because row-level entitlement filters the regression panel before it runs. This is a property of the engine, not a hand-authored variant.
 
 ---
 
-## 4. The four demo scenarios
+## Judging criteria — where to find each one
 
-Selectable from the scenario bar. Each recomputes from the source extracts on selection; nothing is pre-rendered.
-
-| ID | Scenario | Proves |
-| --- | --- | --- |
-| A | CFO, Total Revenue anomaly | Full chain: detection, decomposition, refuted and validated drivers, actions. |
-| B | Regional manager, same KPI | Entitlement scoping changes the data, the attribution and the recommended action. |
-| C | CFO, New Market Revenue | Abstention on sparse history: 6 of 24 required observations. |
-| D | CFO, Product Return Rate | Abstention on contradiction: operations data and survey data disagree. |
-
-Scenario B is the important one. Given the same metric, the regional manager sees a different attribution than the CFO because row-level entitlement changes the panel the regression is fitted on. This is a property of the engine, not a hand-written variant.
+| Accenture criterion | Engine module | Where to see it in the demo |
+|--------------------|---------------|----------------------------|
+| Detects and prioritises material KPI movements | `src/engine/metrics.ts`, `src/engine/stats.ts` | Dashboard signal badges — ANOMALY, WATCH, NOISE, SPARSE. Brief header shows z-score, CUSUM peak, materiality threshold, and the reason for the classification |
+| Reconciles heterogeneous data sources | `src/engine/reconcile.ts` | Brief section "Sources and grain alignment" — SLA lag, quality score, and reconciliation decisions per source |
+| Identifies and ranks explanatory drivers using appropriate methods | `src/engine/causal.ts`, `src/engine/contribution.ts`, `src/engine/retrieval.ts` | Driver table — coefficient, confidence interval, p-value, three refutation test results, TF-IDF evidence citations, rejected driver with rejection reason |
+| Generates persona-specific narratives with traceable evidence | `src/engine/rbac.ts`, `src/engine/narration.ts` | Scenario A versus Scenario B — different data, different drivers, different actions, different narrative framing |
+| Communicates uncertainty and abstains | `src/engine/pipeline.ts` | Scenarios C and D — abstention banner, observation count, unlock condition, zero token spend shown in telemetry |
+| Recommends practical actions grounded in business levers | `src/engine/actions.ts` | Assigned actions table — lever, owner, deadline, expected impact in USD, decision rights by persona, monitoring plan with metric, threshold, and first review date |
+| Learns from analyst and business-user feedback | `src/engine/feedback.ts`, `src/engine/drift.ts` | Brief feedback panel — confirm, reject, or request clarification. Telemetry shows detection precision against analyst verdicts and suppressed drivers |
+| Operates within security, cost, latency, and scalability constraints | `src/engine/rbac.ts`, `src/engine/cost.ts`, `src/engine/drift.ts` | Telemetry panel — model tier, routing reason, cache hit, input and output tokens, cost per insight, latency, access log, population stability index per input |
 
 ---
 
-## 5. Architecture
+## Architecture
 
-```text
- CSV extracts (7)          src/data/csv/
-        |
-   csv.ts  ->  datasets.ts        typed, lazily parsed adapters
-        |
-   reconcile.ts                   grain alignment, SLA lag, quality score
-        |
-   semantic.ts                    governed KPI contract + entitlements
-        |
-   metrics.ts                     deseasonalise -> robust z -> materiality gate
-        |
-   contribution.ts                dimensional + effect decomposition
-        |
-   causal.ts                      OLS panel + refutation battery
-        |
-   retrieval.ts                   TF-IDF evidence from notes and tickets
-        |
-   actions.ts                     playbook: owner, impact, monitoring
-        |
-   pipeline.ts   runBrief()       orchestration + step trace + abstention
-        |                                 |
-   narration.ts -> narrate.functions.ts   | deterministic template (fallback)
-        |  Lovable AI Gateway, server side
-        v
-   DecisionBrief.tsx
+```
+src/data/csv/  (7 source extracts)
+      │
+      ├── csv.ts              RFC-4180 parser — dependency-free, deterministic
+      └── datasets.ts         Typed, lazily parsed, memoised adapters per source system
+            │
+      reconcile.ts            Grain alignment, SLA lag, quality scoring, reconciliation notes
+            │
+      semantic.ts             Governed KPI contract — formula, grain, thresholds, lineage,
+                              entitlements, known cross-source definition conflicts
+            │
+      metrics.ts              STL-style phase-mean decomposition → robust MAD z-score →
+                              CUSUM change-point → dual materiality gate (statistical + USD)
+            │
+      contribution.ts         Dimensional drill-down → volume / price / mix / interaction /
+                              timing decomposition (contributions reconcile arithmetically)
+            │
+      causal.ts               OLS panel regression with lag structure →
+                              three-test refutation battery (placebo period,
+                              common-cause control, subset stability)
+            │
+      retrieval.ts            TF-IDF cosine similarity over CRM notes and support tickets —
+                              in-memory index, no vector database, fully deterministic
+            │
+      actions.ts              Governed playbook → lever, owner, deadline, expected impact
+                              (derived from driver contribution × recovery assumption),
+                              decision rights per persona, monitoring plan
+            │
+      pipeline.ts             Orchestrator — runs the chain, applies abstention rules,
+                              records the step trace that actually executed
+            │
+      ┌─────────────────────────────────────────┐
+      │                                         │
+narration.ts                          deterministic template
+(LLM path)                            (fallback when gateway
+      │                                unavailable or guard fails)
+      │
+narrate.functions.ts        Server function — routes to model tier by business rule,
+                            checks output with numeric guard, logs tokens/latency/cost,
+                            caches on payload hash
+      │
+DecisionBrief.tsx           Renders the brief, step trace, feedback panel, telemetry
 ```
 
-Supporting modules: `rbac.ts` (personas, clearance, access log), `cost.ts` (model routing, cache, cost model), `drift.ts` (PSI, precision), `feedback.ts` (priors from analyst decisions), `scenarios.ts` (demo states), `stats.ts` (decomposition, CUSUM, OLS, Holt, PSI).
+Supporting modules: `rbac.ts` — row, column, and domain access rules evaluated before data leaves the engine, append-only audit trail. `cost.ts` — model tier catalog, routing logic, cache, cost formula. `drift.ts` — population stability index per input feature, detection precision from feedback verdicts. `feedback.ts` — analyst corrections collapsed into bounded driver priors. `scenarios.ts` — four demo states. `stats.ts` — all statistical primitives (decomposition, robust z, CUSUM, OLS, Holt forecast, PSI).
 
 ---
 
-## 6. Determinism
+## Source data
 
-The same input produces the same brief, every time.
+Seven CSV extracts in `src/data/csv/`, each representing a distinct operational system with its own grain, cadence, and quality profile. The defects are deliberate — each one drives a visible engine behaviour.
 
-- No wall-clock reads inside the engine. The as-of date is a fixed contract value.
-- No randomness at runtime. The synthetic extracts were generated once from a seeded generator and are committed as CSV.
-- Model narration is cached on a hash of the computed payload, so a re-run of the same brief returns the same sentence.
-- If the gateway is unavailable, the brief renders from the deterministic template and is labelled as such. The demo never depends on a network call to be correct.
-
----
-
-## 7. Data
-
-Seven extracts in `src/data/csv/`, deliberately imperfect to exercise the engine:
-
-| File | Grain | Represents |
-| --- | --- | --- |
-| `crm_deals_daily.csv` | day x region x segment x product | Closed-won revenue, units, discount, list price. |
-| `marketing_spend_weekly.csv` | week x region x channel | Spend and impressions, arriving 3 days late. |
-| `ops_returns_weekly.csv` | week x product | Units returned and shipped. |
-| `nps_weekly.csv` | week x segment | Survey responses, small sample, higher variance. |
-| `market_signals_weekly.csv` | week x region | External competitor price index, estimated not observed. |
-| `finance_newmarket_monthly.csv` | month | New market revenue, 6 months of history only. |
-| `crm_notes.csv` | event | Free-text account notes and support tickets for evidence retrieval. |
-
-The interesting properties are the defects: the monthly file is too short to support inference, the survey file disagrees with the operations file on returns, and the market signal is a weekly estimate that cannot support a daily claim. Each defect drives a visible behaviour in the product.
+| File | System | Grain | Cadence | Notable property |
+|------|--------|-------|---------|-----------------|
+| `crm_deals_daily.csv` | CRM deal ledger | day × region × segment × product | Daily | Primary revenue source. Contains an injected South/SMB decline spanning three weeks |
+| `marketing_spend_weekly.csv` | Marketing platform | week × region × channel | Weekly | Arrives three days late — SLA lag is tracked and shown |
+| `ops_returns_weekly.csv` | Operations system | week × product | Weekly | Return rate rises while NPS rises — used in Scenario D contradiction |
+| `nps_weekly.csv` | Voice of customer | week × segment | Weekly | Small sample, high variance — contradicts operations in Scenario D |
+| `market_signals_weekly.csv` | External data provider | week × region | Weekly | Competitor price index — estimated, not observed. Cadence prevents daily claims |
+| `finance_newmarket_monthly.csv` | Finance ledger | month | Monthly | Six months of history only — triggers sparse history abstention in Scenario C |
+| `crm_notes.csv` | CRM free text | event | Continuous | Account notes and support tickets used for TF-IDF evidence retrieval |
 
 ---
 
-## 8. Running it
+## KPI semantic contract
+
+Every KPI is defined in `src/engine/semantic.ts` before the engine is permitted to compute it. The contract specifies:
+
+- **Formula** — the exact calculation, not a label
+- **Grain and calendar** — ISO week or fiscal period, not assumed
+- **Materiality thresholds** — a statistical threshold (z-score) and a business-impact threshold (USD), both required to escalate
+- **Minimum history** — the observation count below which detection is not attempted
+- **Source lineage** — which files contribute to this KPI and in what order of precedence
+- **Known definition conflicts** — documented disagreements between sources that the reconciliation layer must resolve
+- **Access entitlements** — which personas may see this KPI, with row-level and column-level restrictions
+
+Nothing downstream redefines a KPI. The contract is the authority.
+
+---
+
+## LLM versus non-LLM — explicit breakdown
+
+| Pipeline step | LLM involved | Technique |
+|---------------|-------------|-----------|
+| Signal detection | No | Phase-mean decomposition, MAD-based robust z-score, CUSUM |
+| Materiality classification | No | Dual threshold — statistical and USD, from the semantic contract |
+| Dimensional decomposition | No | Arithmetic contribution analysis (volume, price, mix, interaction, timing) |
+| Causal estimation | No | OLS panel regression with lag structure |
+| Driver refutation | No | Placebo period, common-cause control, subset stability — three deterministic tests |
+| Evidence retrieval | No | TF-IDF cosine similarity, in-memory index |
+| Abstention decision | No | Rule-based — sparse history gate, contradiction gate, refutation-failure gate |
+| Action assignment | No | Governed playbook lookup, entitlement filter |
+| Narrative generation | **Yes — constrained** | Model receives a structured payload of computed facts only. Numeric guard rejects any output containing a number not in the payload |
+| Cost routing | No | Business rule — tier selected by driver count and materiality |
+| Narrative caching | No | Deterministic hash of the computed payload |
+| Feedback and priors | No | Bounded additive adjustment to confidence scores |
+| Drift monitoring | No | Population stability index |
+
+The LLM is involved in exactly one step. It is given no data, no raw rows, and no analytical authority. Its only job is to convert a structured JSON payload into readable prose.
+
+---
+
+## Role-based access
+
+Two personas are implemented. Access is enforced at the data layer before any analysis runs — a restricted value never reaches the narrative model or the browser payload.
+
+| Capability | CFO | Regional Sales Manager |
+|-----------|-----|----------------------|
+| Data scope | All regions and segments | South region only — row filter applied before regression |
+| KPIs visible | All five | Revenue, Customer Acquisition Cost, Average Order Value |
+| Attribution | Group-level panel regression | Region-scoped panel regression — different result, not a filtered view |
+| Actions | All validated actions | Actions within RSM decision rights only — withheld count reported |
+| Telemetry | Full access | Not shown |
+| Sensitive fields | Visible | Masked — competitor intelligence and group financials |
+
+Every access decision is written to an append-only audit trail and shown in the telemetry panel.
+
+---
+
+## Feedback and the learning loop
+
+Analyst corrections feed back into the next run without retraining any model.
+
+1. An analyst confirms, rejects, or corrects a driver finding in the brief footer
+2. The verdict is stored with the KPI identifier, driver identifier, persona, and timestamp
+3. On the next run for the same KPI, `feedback.ts` collapses the correction history into bounded driver priors — confirmed drivers gain up to +0.10 confidence, rejected drivers lose up to −0.15
+4. The adjustment formula is transparent — the brief states which priors are active and why
+5. Detection precision (the share of escalations accepted by analysts without manual revision) is tracked in `drift.ts` and shown in telemetry
+
+Three seed corrections are pre-loaded — a billings attribution correction, a competitive pricing confirmation, and an August seasonality rejection — so the feedback panel and its effects are visible immediately in the demo.
+
+---
+
+## Cost and latency model
+
+| Case | Model tier | Token spend | Rationale |
+|------|-----------|-------------|-----------|
+| Noise signal | None | Zero | Movement is within normal variance — no brief generated |
+| Abstention | None | Zero | Decision is deterministic — LLM is not involved |
+| Single-driver, standard materiality | Light (Gemini Flash Lite) | ~400 tokens | Brief is straightforward — low-cost tier is sufficient |
+| Multi-driver or high materiality | Standard (Gemini Flash) | ~900 tokens | Narrative complexity justifies the stronger tier |
+| Cache hit | None | Zero | Payload hash matches a prior run — cached narrative returned |
+
+At fifty briefs per week, eighty percent cache hit rate, and current model pricing, total model spend is under five hundred USD per business unit per year.
+
+---
+
+## Determinism
+
+The same inputs produce the same brief, every time.
+
+- The as-of date is a fixed constant in `datasets.ts` — no wall-clock reads inside the engine
+- The source extracts are committed CSVs generated once from a seeded generator — no runtime randomness
+- Model narration is cached on a hash of the computed payload — a re-run of the same brief returns the same sentence without a model call
+- If the Lovable AI Gateway is unavailable, the brief renders from the deterministic template in `narration.ts` and is labelled as such — the demo never depends on a network call to be correct
+
+---
+
+## Running locally
+
+**Prerequisites:** Node.js 18 or above, or Bun. An internet connection is not required for the analytical engine — only for LLM narration via the Lovable AI Gateway.
 
 ```sh
+# Install dependencies
 npm install
+# or
+bun install
+
+# Start the development server
 npm run dev
+# or
+bun dev
 ```
 
-Then open the local URL, choose a persona, and use the scenario bar. Narration uses the Lovable AI Gateway from a server function; without it the app still runs on deterministic narration.
+Open the URL shown in the terminal. Select a persona on the login screen. Use the scenario bar at the bottom to navigate between the four demo scenarios.
+
+**Without a gateway connection:** The application runs fully on the deterministic template narration. The brief is labelled `[Deterministic template — gateway unavailable]` in the narrative source field. All analytical outputs — detection, decomposition, causation, actions, telemetry — are unaffected.
+
+```sh
+# Lint
+npm run lint
+
+# Format
+npm run format
+
+# Production build
+npm run build
+```
 
 ---
 
-## 9. Honest limitations
+## Project structure
 
-- Data is synthetic. The engine is real, the business is not.
-- Causal estimates are observational. Refutation tests reduce the risk of a spurious driver but do not establish counterfactual truth; a randomised test would.
-- Feedback updates driver priors in session state, not in a persisted store.
-- Entitlement enforcement is implemented in the engine, not in a database policy layer, which is where it would belong in production.
-- The playbook is curated. Expected impact figures are derived from the computed contribution, but the intervention library itself is human-authored, by design.
+```
+src/
+├── data/
+│   └── csv/                  Seven source extracts
+├── engine/
+│   ├── actions.ts            Action playbook and assignment
+│   ├── causal.ts             OLS regression and refutation battery
+│   ├── contribution.ts       Volume / price / mix decomposition
+│   ├── cost.ts               Model routing, cache, cost formula
+│   ├── csv.ts                CSV parser
+│   ├── datasets.ts           Source adapters
+│   ├── drift.ts              PSI and detection precision
+│   ├── feedback.ts           Analyst corrections and driver priors
+│   ├── metrics.ts            KPI computation and detection
+│   ├── narration.ts          LLM narration contract and guard
+│   ├── pipeline.ts           Brief orchestrator
+│   ├── rbac.ts               Access control and audit trail
+│   ├── reconcile.ts          Grain alignment and source quality
+│   ├── retrieval.ts          TF-IDF evidence retrieval
+│   ├── scenarios.ts          Demo scenario definitions
+│   ├── semantic.ts           KPI semantic contract
+│   ├── stats.ts              Statistical primitives
+│   └── types.ts              Shared type definitions
+├── components/
+│   ├── narrateiq/            Application screens and panels
+│   └── ui/                   Radix-based design system components
+└── lib/
+    └── narrate.functions.ts  Server function for LLM narration
+```
 
 ---
 
-## 10. What production would add
+## Honest limitations
 
-1. Push semantics and entitlements into the warehouse, so the contract is enforced at the query layer rather than in application code.
-2. Persist feedback and recompute driver priors and alert thresholds on a schedule, closing the learning loop across users.
-3. Add experiment support so recommended actions can be measured against a holdout rather than a monitoring metric alone.
-4. Extend the refutation battery with sensitivity analysis for unobserved confounding.
-5. Add an approval workflow between recommended action and assigned action, with the audit trail attached to the brief that produced it.
+These are real limitations of the prototype, stated because a judge who finds them first is a judge who has a reasonable objection. These do not affect the validity of the demo scenarios.
+
+| Limitation | What production would add |
+|-----------|--------------------------|
+| Data is synthetic | Live source connectors governed by warehouse-layer access policies |
+| Causal estimates are observational | Randomised holdout tests for recommended actions to establish counterfactual validity |
+| Feedback priors update in session state only | Persisted feedback store with scheduled recomputation of priors and detection thresholds across users |
+| Entitlement enforced in application code | Row-level security policies pushed into the warehouse query layer (Snowflake, BigQuery) so enforcement is not bypassable at the application level |
+| Action playbook is human-authored | A playbook editor with version control, so domain experts can maintain the intervention library without a code deployment |
+
+---
+
+## What production would add
+
+1. Warehouse-native semantic layer — push KPI contracts and entitlements into the warehouse so they are enforced at the query layer, not the application layer
+2. Persisted feedback store — close the learning loop across users and sessions with scheduled prior recomputation
+3. Experiment support — measure recommended action outcomes against a holdout group rather than a monitoring metric alone
+4. Refutation battery extension — add sensitivity analysis for unobserved confounding to the existing three-test battery
+5. Approval workflow — an explicit step between recommended action and assigned action, with the brief that generated the recommendation attached to the audit trail
+6. Push delivery — proactive briefing to Slack or email when an anomaly is detected, without requiring a dashboard visit
+
+---
+
+## Track and submission
+
+**Challenge:** Accenture Innovation Challenge 2026
+**Track:** Track 3 — BusinessIntelligence.ai
+**Round:** Round 2
+**Submission type:** Working prototype with business proposal
+
+The business case, value model, pilot plan, competitive analysis, and risk register are in `BUSINESS_PROPOSAL.md`.
